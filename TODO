@@ -1,0 +1,5 @@
+TODO
+1. two modes: one for consecutive indexes, the other is default
+2. when close the file clean all the record* stored in the list
+
+1. test the destructor of Record
