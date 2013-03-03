@@ -12,7 +12,7 @@ endif
 
 test2.out: Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o BigQ.o Pipe.o y.tab.o lex.yy.o test2.o
 	$(CC) -o test.out Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o BigQ.o Pipe.o y.tab.o lex.yy.o test2.o -lfl -lpthread
-
+	
 test1.out: Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o y.tab.o lex.yy.o test1.o
 	$(CC) -o test.out Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o y.tab.o lex.yy.o test1.o -lfl -lpthread
 	
@@ -53,7 +53,7 @@ Schema.o: Schema.cc
 	$(CC) -g -c Schema.cc
 	
 y.tab.o: Parser.y
-	yacc -d Parser.y
+	yacc -d Parser.y -o y.tab.c
 	sed $(tag) y.tab.c -e "s/  __attribute__ ((__unused__))$$/# ifndef __cplusplus\n  __attribute__ ((__unused__));\n# endif/" 
 	g++ -c y.tab.c
 
