@@ -13,13 +13,6 @@
 
 using namespace std;
 
-//struct thrd_data {
-//	Pipe &inputPipe;
-//	Pipe &outputPipe;
-//	OrderMaker &sortOrder;
-//	int runLength;
-//};
-
 struct RecordInRun {
     Record record;
     int runIndex;
@@ -67,16 +60,14 @@ public:
 BigQ::BigQ(Pipe &_inputPipe, Pipe &_outputPipe, OrderMaker &_sortOrder,
 	int runLength) : inputPipe(_inputPipe), outputPipe(_outputPipe), sortOrder(_sortOrder), runLenInBytes(
 runLength * PAGE_SIZE) {
-    //	struct thrd_data my_thrd_data = { inputPipe, outputPipe, sortOrder,
-    //			runLength };
+
     int rc;
     rc = pthread_create(&workerThrd, NULL, workerHelper,
-	    this /*&my_thrd_data*/);
+	    this);
     if (rc) {
 	printf("ERROR; return code from pthread_create() is %d\n", rc);
 	exit(-1);
     }
-    //	pthread_join(workerThrd, NULL);
 }
 
 void *BigQ::workerHelper(void *context) {
@@ -84,16 +75,8 @@ void *BigQ::workerHelper(void *context) {
 }
 
 void *BigQ::workerFunc() {
-    // TODO all these variables should be member variables or should be like now
-    //	Pipe &inputPipe = ((struct thrd_data *)my_thrd_data)->inputPipe;
-    //	Pipe &outputPipe = ((struct thrd_data *)my_thrd_data)->outputPipe;
-    //	OrderMaker &sortOrder = ((struct thrd_data *)my_thrd_data)->sortOrder;
-    //	int runLength = ((struct thrd_data *)my_thrd_data)->runLength;
-    //	BigQ *obj = (BigQ*)_obj;
 
-    Schema* psn = new Schema("catalog", "nation");
-
-    // TODO create a temp file as  sorting buffer using pid as file name
+    // create a temp file as sorting buffer using pid as file name
     pthread_t self = pthread_self();
     char fileName[100];
 #if defined _WIN32
@@ -106,12 +89,15 @@ void *BigQ::workerFunc() {
     //	runLenInBytes = ((struct thrd_data *) my_thrd_data)->runLength * PAGE_SIZE;
 
     // --- RUN GENERATION ---
-    // TODO read from input and once there is enough then sort
+    // read from input and once there is enough then sort
     Record curRec;
+    vector<int> runStartPage;	// used record start index of each run on the way of reading input
     int curSizeInBytes = 0, curRecSize;
+
     while (inputPipe.Remove(&curRec)) {
 	curRecSize = curRec.GetLength();
 	if (curSizeInBytes + curRecSize > runLenInBytes) {
+	    runStartPage.push_back(sortedRuns.GetLength());
 	    exportSortedRun();
 	    curSizeInBytes = 0;
 	}
@@ -120,28 +106,34 @@ void *BigQ::workerFunc() {
 	curRec.Reuse();
     }
     if (listBuf.size()) {
+	runStartPage.push_back(sortedRuns.GetLength());
 	exportSortedRun();
     }
     runStartPage.push_back(sortedRuns.GetLength()); // store one more page index to indicate the end of the last run
 
     // inputPipe.ShutDown();	// should be shut down by producer rather than consumer
 
-    cout << "reading from input finished" << endl;
+#ifdef DEBUG
+    cout << "Run#\t" << "Page#" << endl;
+
+    for (int i = 0; i < runStartPage.size(); i++) {
+	cout << i << "\t" << runStartPage[i] << endl;
+    }
+
+    cout << "reading from input finished " << endl;
+#endif
 
     // --- RUN MERGING ---
-    // TODO use stl::priority queue to merge the runs and then output to the pipe and shutdown die
+    // use stl::priority queue to merge the runs and then output to the pipe and shutdown die
+    int runCount = runStartPage.size() - 1, curRun = 0;
+    vector<int> runCurPage(runStartPage);
     priority_queue<RecordInRun, vector<RecordInRun>, RIRComp> pq(
 	    RIRComp(sortOrder, true));
-    int runCount = runStartPage.size() - 1, curRun = 0;
-    while (curRun < runCount) {
-	// TODO here is the case that get one from each run respectively thus sure to be more effective in this way
-	sortedRuns.RemovePageHead(&curRec, runStartPage[curRun]);
-	//	sortedRuns.GetPage(&pageBuf, runStartPage[curRun]); // TODO a more specified GetPageFirst()
-	//	pageBuf.GetFirst(&curRec); // TODO store the first while exporting sorted runs
-	//	sortedRuns.AddPage(&pageBuf, runStartPage[curRun]); // delete the head of each run every time we push it into heap
+    Page inBuf[runCount]; // TODO double buffering
+    while (curRun < runCount) { // TODO store the first page while exporting sorted runs and other pipelining scheme
+	sortedRuns.GetPage(inBuf + curRun, runCurPage[curRun]);
 
-	// TODO sending in an object arguments then it will be copied and used and finally destoryed regardless it's a temporary obj or anything
-	// TODO since the one destroyed is the one the function copied
+	inBuf[curRun].GetFirst(&curRec);
 
 	pq.push((RecordInRun) {
 	    curRec, curRun
@@ -149,63 +141,63 @@ void *BigQ::workerFunc() {
 	curRun++;
     }
 
+#if defined DEBUG
     cout << "heap initialized" << endl;
+    int cntRec = 6;
+    cout << "Run#\t" << "Page#" << endl;
+#endif
 
-    curRun--; // reset curRun index to the last run, i.e. the run we keep in the memory buffer now
     while (!pq.empty()) {
 	curRec = pq.top().record;
 	outputPipe.Insert(&curRec);
 	curRun = pq.top().runIndex;
 	pq.pop();
-	if (sortedRuns.RemovePageHead(&curRec, runStartPage[curRun])) {
+
+	if (inBuf[curRun].GetFirst(&curRec)) {
 
 	    pq.push((RecordInRun) {
 		curRec, curRun
 	    });
-
-	    //	curRun = pq.top().runIndex;
-	    //	sortedRuns.GetPage(&pageBuf, runStartPage[curRun]); // TODO try to add page here (only when the page changes)  (effective when it's almost sorted / runs reside on different ranges but not sorted themselves)
-	    //	//	}
-	    //
-	    //	// now the page is loaded correctly
-	    //	pq.pop();
-	    //	// TODO check the size each time to avoid loading of an empty page   OR   do one more GetFirst to utilize the return val
-	    //	if (pageBuf.GetFirst(&curRec)) {
-	    //	    sortedRuns.AddPage(&pageBuf, runStartPage[curRun]); // TODO here in AddPage() pageBuf is Reuse()ed thus we must re-populate the buffer regardless curRun==top().runIndex?
-	    //
-	    //	    pq.push((RecordInRun) {
-	    //		curRec, curRun
-	    //	    });
-	} else { // no more records exist on this page
-	    // move forward the start page to make next GetPage() on this run more convenient
-	    if (runStartPage[curRun] + 1 == runStartPage[curRun + 1]) { // only one page for current run
+#ifdef DEBUG
+	    cntRec++;
+#endif
+	} else { // load a new page
+#ifdef DEBUG
+	    cout << curRun << "\t" << runCurPage[curRun] << endl;
+#endif
+	    if (runCurPage[curRun] + 1 == runStartPage[curRun + 1]) {
 		continue; // every record in this run has already been popped out
 	    } else { // this run will not end after this page
-		runStartPage[curRun]++;
-		//		sortedRuns.GetPage(&pageBuf, runStartPage[curRun]);
-		//		pageBuf.GetFirst(&curRec);
-		//		sortedRuns.AddPage(&pageBuf, runStartPage[curRun]);
-		sortedRuns.RemovePageHead(&curRec, runStartPage[curRun]);
+		runCurPage[curRun] = runCurPage[curRun] + 1;
+		sortedRuns.GetPage(inBuf + curRun, runCurPage[curRun]);
+		inBuf[curRun].GetFirst(&curRec);
 
 		pq.push((RecordInRun) {
 		    curRec, curRun
 		});
+#ifdef DEBUG
+		cntRec++;
+#endif
 	    }
 	}
     }
+#ifdef DEBUG
+    cout << "writing " << cntRec << " recs to output finished " << endl;
+#endif
     sortedRuns.Close();
+    remove(fileName);
+    //    if (ret != 0)
+    //	perror("Error deleting file: errcode# " + ret);
+    //    else
+    //	puts("File successfully deleted");
     outputPipe.ShutDown(); // producing process finished and thus set the done flag
-    cout << "writing to output finished" << endl;
-    // TODO where to exit the thread?
-    //	pthread_exit(NULL);
     return NULL;
 }
 
 void BigQ::exportSortedRun() {
-    // TODO sort and write to temp file and record the page index
-    runStartPage.push_back(sortedRuns.GetLength());
+    // sort and write to temp file
     listBuf.sort(RecComp(sortOrder, false));
-    Schema *psn = new Schema("catalog", "nation");
+    Page pageBuf;
     for (list<Record>::iterator it = listBuf.begin(); it != listBuf.end();
 	    ++it) {
 	if (!pageBuf.Append(&(*it))) {
@@ -213,7 +205,7 @@ void BigQ::exportSortedRun() {
 	    pageBuf.Append(&(*it));
 	}
     }
-    if (pageBuf.GetLength()) { //TODO check here if it's correct
+    if (pageBuf.GetLength()) {
 	sortedRuns.AddPage(&pageBuf, sortedRuns.GetLength());
     }
     listBuf.clear();

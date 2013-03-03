@@ -161,3 +161,16 @@ pip-log.txt
 
 # Mac crap
 .DS_Store
+/orders.bin
+/nation.bin
+/part.bin
+/region.bin
+/partsupp.bin
+/sedeSLqqp
+/y.tab.c
+/lineitem.bin
+/test.out
+/lex.yy.c
+/customer.bin
+/y.tab.h
+/10M/

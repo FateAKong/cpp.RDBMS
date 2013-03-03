@@ -16,23 +16,18 @@
 
 class BigQ {
 private:
-	pthread_t workerThrd;		// worker thread
-	void *workerFunc();		// worker function
-	static void *workerHelper(void *);		// helper function to cast a member function to the type that pthread could use
+	pthread_t workerThrd;
+	void *workerFunc();
+	static void *workerHelper(void *);	// helper function to cast a member function to the type that pthread could use
 	void exportSortedRun();
 
 	Pipe& inputPipe;
 	Pipe& outputPipe;
 	OrderMaker& sortOrder;
 
-	// TODO initial the buffer
-//	Page buffer[my_runLength];
-	int runLenInBytes;
-	Page pageBuf;
+	int runLenInBytes;	
 	list<Record> listBuf;
-	vector<int> runStartPage;
 	File sortedRuns;
-//	buf.reserve(1024);
 public:
 	BigQ(Pipe &inputPipe, Pipe &outputPipe, OrderMaker	&sortOrder, int runLength);
 };
