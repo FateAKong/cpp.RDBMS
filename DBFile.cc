@@ -10,130 +10,174 @@
 #include <string.h>
 #include <stdlib.h>
 
-// stub file .. replace it with your own DBFile.cc
 // TODO multiple threads read and write   should this be applied in concurrency control
 
-DBFile::DBFile() {
-    //	path = (char *) malloc(sizeof(char) * 25);
-    //	metapath = (char *) malloc(sizeof(char) * 25);
-    path = new char[25];
-    metapath = new char[25];
-    startup = NULL;
-}
-
-DBFile::~DBFile() {
-    delete[] path;
-    delete[] metapath;
-}
-
-int DBFile::Create(char *f_path, fType type, void *startup) {
-    char *strbuf = new char[25];
-    strcpy(strbuf, f_path);
-    strcpy(path, strbuf);
-    strcpy(metapath, strcat(strbuf, ".meta"));
-    delete[] strbuf;
-    data.Open(0, path);
-    switch (type) {
-	case heap:
-	    myDBFile = new HeapFile(data);
-	    break;
-	case sorted:
-	    myDBFile = new SortedFile(data);
-	    break;
-	case btree:
-	    break;
-	default:
-	    break;
+int DBFile::Create(char *filePath, fType fileType, void *startup)
+{
+    char *metaPath = new char[100];
+    strcpy(metaPath, filePath);
+    strcat(metaPath, ".meta");
+    FILE *metaFile = fopen(metaPath, "wb");
+    fwrite(&fileType, sizeof (int), 1, metaFile); // TODO write contdWrite and index
+    fclose(metaFile);
+    delete[] metaPath;
+    switch (fileType) {
+    case heap:
+        myDBFile = new HeapFile();
+        break;
+    case sorted:
+        myDBFile = new SortedFile();
+        break;
+    case btree:
+        break;
+    default:
+        myDBFile = NULL;
+        break;
     }
-    FILE *meta = fopen(metapath, "wb");
-    fwrite(&type, sizeof (int), 1, meta); // TODO write contdWrite and index
-    fclose(meta);
-    return 1;
-}
+    if (myDBFile == NULL) {
+        cerr << "Wrong MetaFile!" << endl;
+        return 0;
+    }
+    return myDBFile->Create(filePath, startup);
+};
 
-int DBFile::Open(char *f_path) {
+int DBFile::Open(char *filePath)
+{
     // TODO check if the dbfile is already in use if so close it first
-    //	char *buf = (char *) malloc(sizeof(char) * 25);
-    char *strbuf = new char[25];
-    strcpy(strbuf, f_path);
-    strcpy(path, strbuf);
-    strcpy(metapath, strcat(strbuf, ".meta"));
-    delete[] strbuf;
-    data.Open(1, path);
-    FILE *metafile = fopen(metapath, "rb");
-    int metadata;
-    fread(&metadata, sizeof (int), 1, metafile);
-    fclose(metafile);
-    switch (metadata) {
-	case 0:
-	    myDBFile = new HeapFile(data);
-	    break;
-	case 1:
-	    myDBFile = new SortedFile(data);
-	    break;
-	case 2:
-	    //			myDBFile = new BTreeFile();
-	    break;
-	default:
-	    myDBFile = NULL;
-	    break;
+    char *metaPath = new char[100];
+    int metaData;
+    strcpy(metaPath, filePath);
+    strcat(metaPath, ".meta");
+    FILE *metaFile = fopen(metaPath, "rb");
+    fread(&metaData, sizeof (int), 1, metaFile);
+    fclose(metaFile);
+    delete[] metaPath;
+    switch (metaData) {
+    case heap:
+        myDBFile = new HeapFile();
+        break;
+    case sorted:
+        myDBFile = new SortedFile();
+        break;
+    case btree:
+        //            myDBFile = new BTreeFile();
+        break;
+    default:
+        myDBFile = NULL;
+        break;
     }
+    if (myDBFile == NULL) {
+        cerr << "Wrong MetaFile!" << endl;
+        return 0;
+    }
+    return myDBFile->Open(filePath);
+};
+
+int GenericDBFile::Create(char *filePath, void *_startup)
+{
+    strcpy(path, filePath);
+    startup = _startup;
+    data.Open(0, path);
     return 1;
 }
 
-GenericDBFile::GenericDBFile(File& _data, void* startup) : data(_data) {
+int GenericDBFile::Open(char *filePath)
+{
+    strcpy(path, filePath);
+    // TODO change err handle in File.Open to return value instead of exit directly
+    data.Open(1, path);
+    return 1;
+}
+
+GenericDBFile::GenericDBFile()
+{
     MoveFirst();
     // TODO record the values of enum file type to determine this initialization
     dirty = false;
     contdWrite = false; // TODO ?
     fetchedRead = false;
+
+    path = new char[100];
+    startup = NULL;
 }
 
-SortedFile::SortedFile(File& _data, void* startup) : GenericDBFile(_data, startup) {
+GenericDBFile::~GenericDBFile()
+{
+    delete[] path;
+    if (startup != NULL) {
+        delete startup;
+    }
 }
 
-int SortedFile::Close() {
-
-};
-
-void SortedFile::Load(Schema &myschema, char *loadpath) {
-
-};
-
-void SortedFile::MoveFirst() {
-
-};
-
-void SortedFile::Add(Record &addme) {
-
-};
-
-int SortedFile::GetNext(Record &fetchme) {
-
-};
-
-int SortedFile::GetNext(Record &fetchme, CNF &cnf, Record &literal) {
-
-};
-
-void SortedFile::Clean() {
-
-};
-
-HeapFile::HeapFile(File& _data) : GenericDBFile(_data) {
+SortedFile::SortedFile()
+{
+    order = NULL;
+    bigQ = NULL;
 }
 
-void HeapFile::Load(Schema &f_schema, char *loadpath) {
+SortedFile::~SortedFile()
+{
+
+}
+
+int SortedFile::Create(char *filePath, void *_startup)
+{
+
+}
+
+int SortedFile::Close()
+{
+
+}
+
+void SortedFile::Load(Schema &myschema, char *loadpath)
+{
+
+}
+
+void SortedFile::Add(Record &addme)
+{
+
+}
+
+int SortedFile::GetNext(Record &fetchme)
+{
+
+}
+
+int SortedFile::GetNext(Record &fetchme, CNF &cnf, Record &literal)
+{
+
+}
+
+void SortedFile::Clean()
+{
+
+}
+
+HeapFile::HeapFile()
+{
+
+}
+
+HeapFile::~HeapFile()
+{
+
+}
+
+void HeapFile::Load(Schema &f_schema, char *loadpath)
+{
     // TODO check if it is reading?
     Record addMe;
     FILE *bulk = fopen(loadpath, "r");
     while (addMe.SuckNextRecord(&f_schema, bulk) == 1) {
-	Add(addMe);
+        Add(addMe);
     }
     fclose(bulk);
 }
 
-int HeapFile::Close() {
+int HeapFile::Close()
+{
     // TODO write contdWrite???
     // TODO clean char* s
     // TODO only closes when file switching
@@ -157,18 +201,19 @@ int HeapFile::Close() {
 
 // clean the nasty stufff! write dirty data in the buffer to disk
 
-void HeapFile::Clean() {
+void HeapFile::Clean()
+{
     if (dirty) {
-	//		if (data.GetLength() > 0) {
-	if (contdWrite) {
-	    data.AddPage(&buffer, data.GetLength() - 1);
-	} else {
-	    data.AddPage(&buffer, data.GetLength());
-	}
-	//		} else {
-	//			data.AddPage(&buffer, 0);
-	//		}
-	dirty = false;
+        //		if (data.GetLength() > 0) {
+        if (contdWrite) {
+            data.AddPage(&buffer, data.GetLength() - 1);
+        } else {
+            data.AddPage(&buffer, data.GetLength());
+        }
+        //		} else {
+        //			data.AddPage(&buffer, 0);
+        //		}
+        dirty = false;
     }
     //	if (dirty) {
     //		if (data.GetLength() > 0) {
@@ -184,25 +229,26 @@ void HeapFile::Clean() {
     //	}
 }
 
-void HeapFile::Add(Record &rec) {
+void HeapFile::Add(Record &rec)
+{
     if (!dirty) {
-	// when just switched from reading to writing or just opened the file for writing
-	// if in the process of reading, need to empty the buffer (done by data.GetPage())
-	// when adding the first record, no pages exist on disk to fetch
-	if (data.GetLength() > 0) {
-	    data.GetPage(&buffer, data.GetLength() - 1);
-	    contdWrite = true;
-	    fetchedRead = false;
-	}
+        // when just switched from reading to writing or just opened the file for writing
+        // if in the process of reading, need to empty the buffer (done by data.GetPage())
+        // when adding the first record, no pages exist on disk to fetch
+        if (data.GetLength() > 0) {
+            data.GetPage(&buffer, data.GetLength() - 1);
+            contdWrite = true;
+            fetchedRead = false;
+        }
     }
     // in the process of writing, no need to fetch the last page to buffer
     if (buffer.Append(&rec) == 0) {
-	// if buffer was almost full after fetchedRead from disk, then maybe no need to clean
-	// so there is a dirty check inside Clean()
-	Clean();
-	contdWrite = false;
-	// ignore the extreme circumstance when record size > page size
-	buffer.Append(&rec);
+        // if buffer was almost full after fetchedRead from disk, then maybe no need to clean
+        // so there is a dirty check inside Clean()
+        Clean();
+        contdWrite = false;
+        // ignore the extreme circumstance when record size > page size
+        buffer.Append(&rec);
     }
     dirty = true;
 
@@ -216,26 +262,27 @@ void HeapFile::Add(Record &rec) {
     //	dirty = true;
 }
 
-int HeapFile::GetNext(Record &fetchme) {
+int HeapFile::GetNext(Record &fetchme)
+{
     // when just switched from writing to reading or just opened the file for reading
     // need to reposition to current index TODO any adjust after INDEX setting changes?
     if (!fetchedRead) {
-	Clean();
-	data.GetPage(&buffer, index.page);
-	for (int i = 0; i < index.rec - 1; ++i) {
-	    buffer.GetFirst(&fetchme);
-	}
-	fetchedRead = true;
+        Clean();
+        data.GetPage(&buffer, index.page);
+        for (int i = 0; i < index.rec - 1; ++i) {
+            buffer.GetFirst(&fetchme);
+        }
+        fetchedRead = true;
     }
     // get next record
     //	while (buffer.GetLength() == 0) {
     while (buffer.GetFirst(&fetchme) == 0) {
-	index.page++;
-	index.rec = 0;
-	if (index.page == data.GetLength()) {
-	    return 0;
-	}
-	data.GetPage(&buffer, index.page);
+        index.page++;
+        index.rec = 0;
+        if (index.page == data.GetLength()) {
+            return 0;
+        }
+        data.GetPage(&buffer, index.page);
     }
     index.rec++; // do boundry check at next read by GetLength()
     return 1;
@@ -279,12 +326,13 @@ int HeapFile::GetNext(Record &fetchme) {
     //	index.rec++;	// do boundry check at next read
 }
 
-int HeapFile::GetNext(Record &fetchme, CNF &cnf, Record &literal) {
+int HeapFile::GetNext(Record &fetchme, CNF &cnf, Record &literal)
+{
     ComparisonEngine engine;
     do {
-	if (!GetNext(fetchme)) {
-	    return 0;
-	}
+        if (!GetNext(fetchme)) {
+            return 0;
+        }
     } while (engine.Compare(&fetchme, &literal, &cnf) == 0);
     return 1;
 }

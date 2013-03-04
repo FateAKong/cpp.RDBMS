@@ -29,7 +29,7 @@ private:
 	list<Record> listBuf;
 	File sortedRuns;
 public:
-	BigQ(Pipe &inputPipe, Pipe &outputPipe, OrderMaker	&sortOrder, int runLength);
+	BigQ(Pipe &inputPipe, Pipe &outputPipe, OrderMaker &sortOrder, int runLength);
 };
 
 #endif /* BIGQ_H_ */
