@@ -19,12 +19,6 @@ DBFile::DBFile() {
     path = new char[25];
     metapath = new char[25];
     startup = NULL;
-    MoveFirst();
-    // TODO record the values of enum file type to determine this initialization
-    type = heap;
-    dirty = false;
-    contdWrite = false; // TODO ?
-    fetchedRead = false;
 }
 
 DBFile::~DBFile() {
@@ -32,22 +26,104 @@ DBFile::~DBFile() {
     delete[] metapath;
 }
 
-int DBFile::Create(char *f_path, fType _type, void *startup) {
+int DBFile::Create(char *f_path, fType type, void *startup) {
     char *strbuf = new char[25];
     strcpy(strbuf, f_path);
     strcpy(path, strbuf);
     strcpy(metapath, strcat(strbuf, ".meta"));
-    type = _type;
+    delete[] strbuf;
     data.Open(0, path);
-
+    switch (type) {
+	case heap:
+	    myDBFile = new HeapFile(data);
+	    break;
+	case sorted:
+	    myDBFile = new SortedFile(data);
+	    break;
+	case btree:
+	    break;
+	default:
+	    break;
+    }
     FILE *meta = fopen(metapath, "wb");
     fwrite(&type, sizeof (int), 1, meta); // TODO write contdWrite and index
     fclose(meta);
-    delete[] strbuf;
     return 1;
 }
 
-void DBFile::Load(Schema &f_schema, char *loadpath) {
+int DBFile::Open(char *f_path) {
+    // TODO check if the dbfile is already in use if so close it first
+    //	char *buf = (char *) malloc(sizeof(char) * 25);
+    char *strbuf = new char[25];
+    strcpy(strbuf, f_path);
+    strcpy(path, strbuf);
+    strcpy(metapath, strcat(strbuf, ".meta"));
+    delete[] strbuf;
+    data.Open(1, path);
+    FILE *metafile = fopen(metapath, "rb");
+    int metadata;
+    fread(&metadata, sizeof (int), 1, metafile);
+    fclose(metafile);
+    switch (metadata) {
+	case 0:
+	    myDBFile = new HeapFile(data);
+	    break;
+	case 1:
+	    myDBFile = new SortedFile(data);
+	    break;
+	case 2:
+	    //			myDBFile = new BTreeFile();
+	    break;
+	default:
+	    myDBFile = NULL;
+	    break;
+    }
+    return 1;
+}
+
+GenericDBFile::GenericDBFile(File& _data, void* startup) : data(_data) {
+    MoveFirst();
+    // TODO record the values of enum file type to determine this initialization
+    dirty = false;
+    contdWrite = false; // TODO ?
+    fetchedRead = false;
+}
+
+SortedFile::SortedFile(File& _data, void* startup) : GenericDBFile(_data, startup) {
+}
+
+int SortedFile::Close() {
+
+};
+
+void SortedFile::Load(Schema &myschema, char *loadpath) {
+
+};
+
+void SortedFile::MoveFirst() {
+
+};
+
+void SortedFile::Add(Record &addme) {
+
+};
+
+int SortedFile::GetNext(Record &fetchme) {
+
+};
+
+int SortedFile::GetNext(Record &fetchme, CNF &cnf, Record &literal) {
+
+};
+
+void SortedFile::Clean() {
+
+};
+
+HeapFile::HeapFile(File& _data) : GenericDBFile(_data) {
+}
+
+void HeapFile::Load(Schema &f_schema, char *loadpath) {
     // TODO check if it is reading?
     Record addMe;
     FILE *bulk = fopen(loadpath, "r");
@@ -57,48 +133,7 @@ void DBFile::Load(Schema &f_schema, char *loadpath) {
     fclose(bulk);
 }
 
-int DBFile::Open(char *f_path) {
-    // TODO check if the dbfile is already in use if so close it first
-    //	char *buf = (char *) malloc(sizeof(char) * 25);
-    char *buf = new char[25];
-    strcpy(buf, f_path);
-    strcpy(path, buf);
-    strcpy(metapath, strcat(buf, ".meta"));
-    //	FILE *meta = fopen(strcat(path, ".meta"), "r");
-    //	int *buf = (int*) malloc(sizeof(int));
-    FILE *metafile = fopen(metapath, "rb");
-    int metadata[3];
-    fread(metadata, sizeof (int), 3, metafile);
-    switch (metadata[0]) {
-	case 0:
-	    type = heap;
-	    break;
-	default:
-	    break;
-    }
-    // index = {metadata[1], metadata[2]};
-    fclose(metafile);
-    MoveFirst();
-    switch (type) {
-	case heap:
-	    data.Open(1, path);
-	    break;
-	case sorted:
-	    break;
-	case tree:
-	    break;
-	default:
-	    break;
-    }
-    return 1;
-}
-
-void DBFile::MoveFirst() {
-    index.page = 0;
-    index.rec = 0;
-}
-
-int DBFile::Close() {
+int HeapFile::Close() {
     // TODO write contdWrite???
     // TODO clean char* s
     // TODO only closes when file switching
@@ -107,21 +142,22 @@ int DBFile::Close() {
     printf("DBFile Closing.\n");
     Clean();
     int curLength = data.Close();
-    FILE *meta = fopen(metapath, "rb+");
-    printf("Index Value: %d %d\n", index.page, index.rec);
-    fseek(meta, sizeof (int), SEEK_SET);
-    fwrite(&index, sizeof (int), 2, meta);
-    rewind(meta);
-    int buf[3];
-    fread(buf, sizeof (int), 3, meta);
-    printf("Metafile: %d %d %d\n", buf[0], buf[1], buf[2]);
-    fclose(meta);
+    //	FILE *meta = fopen(metapath, "rb+");
+    //	printf("Index Value: %d %d\n", index.page, index.rec);
+    //	fseek(meta, sizeof (int), SEEK_SET);
+    //	fwrite(&index, sizeof (int), 2, meta);
+    //	rewind(meta);
+    //	int buf[3];
+    //	fread(buf, sizeof (int), 3, meta);
+    //	printf("Metafile: %d %d %d\n", buf[0], buf[1], buf[2]);
+    //	fclose(meta);
     //	delete this;
     return 1;
 }
 
 // clean the nasty stufff! write dirty data in the buffer to disk
-void DBFile::Clean() {
+
+void HeapFile::Clean() {
     if (dirty) {
 	//		if (data.GetLength() > 0) {
 	if (contdWrite) {
@@ -148,7 +184,7 @@ void DBFile::Clean() {
     //	}
 }
 
-void DBFile::Add(Record &rec) {
+void HeapFile::Add(Record &rec) {
     if (!dirty) {
 	// when just switched from reading to writing or just opened the file for writing
 	// if in the process of reading, need to empty the buffer (done by data.GetPage())
@@ -180,7 +216,7 @@ void DBFile::Add(Record &rec) {
     //	dirty = true;
 }
 
-int DBFile::GetNext(Record &fetchme) {
+int HeapFile::GetNext(Record &fetchme) {
     // when just switched from writing to reading or just opened the file for reading
     // need to reposition to current index TODO any adjust after INDEX setting changes?
     if (!fetchedRead) {
@@ -243,7 +279,7 @@ int DBFile::GetNext(Record &fetchme) {
     //	index.rec++;	// do boundry check at next read
 }
 
-int DBFile::GetNext(Record &fetchme, CNF &cnf, Record &literal) {
+int HeapFile::GetNext(Record &fetchme, CNF &cnf, Record &literal) {
     ComparisonEngine engine;
     do {
 	if (!GetNext(fetchme)) {

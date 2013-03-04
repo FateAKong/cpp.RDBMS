@@ -8,19 +8,14 @@
 #include "ComparisonEngine.h"
 
 typedef enum {
-	heap, sorted, tree
+	heap, sorted, btree
 } fType;
 
-// stub DBFile header..replace it with your own DBFile.h
-
-class DBFile {
-private:
-	File data;
+class GenericDBFile {
+protected:
+	File& data;
 	Page buffer;
-	char *path;
-	char *metapath;
-	void *startup;
-	bool dirty;		// show if last op is a write or read indirectly
+	bool dirty; // show if last op is a write or read indirectly
 	// show if writing buffer is fetched from the last page of disk or a new one
 	// used case: consecutive Add()s (e.g. Load()) generates new page to write
 	// (opening(last page) differs from creating(new page), but not branched by contdWrite)
@@ -35,20 +30,38 @@ private:
 	// i.e. true iff the indexes are stored in the metafile when closing
 	// default value is false
 	// bool cycleNext;
-	fType type;
-//	enum STATE {
-//		w, r
-//	} state;
+
 	struct INDEX {
 		int page;
 		int rec;
-	} index;	// read index  both from 0 to n-1
-
+	} index; // read index  both from 0 to n-1
 public:
-	DBFile();
-	~DBFile();
-	int Create(char *fpath, fType file_type, void *startup);
-	int Open(char *fpath);
+	GenericDBFile(File& _data, void* startup = NULL);
+	virtual int Close() = 0;
+	virtual void Load(Schema &myschema, char *loadpath) = 0;
+	virtual void MoveFirst()  {
+		index.page = index.rec = 0;
+	};
+	virtual void Add(Record &addme) = 0;
+	virtual int GetNext(Record &fetchme) = 0;
+	virtual int GetNext(Record &fetchme, CNF &cnf, Record &literal) = 0;
+	virtual void Clean() = 0;
+};
+
+class HeapFile : public GenericDBFile {
+public:
+	HeapFile(File& _data);
+	int Close();
+	void Load(Schema &myschema, char *loadpath);
+	void Add(Record &addme);
+	int GetNext(Record &fetchme);
+	int GetNext(Record &fetchme, CNF &cnf, Record &literal);
+	void Clean();
+};
+
+class SortedFile : public GenericDBFile {
+public:
+	SortedFile(File& _data, void* startup = NULL);
 	int Close();
 	void Load(Schema &myschema, char *loadpath);
 	void MoveFirst();
@@ -57,4 +70,53 @@ public:
 	int GetNext(Record &fetchme, CNF &cnf, Record &literal);
 	void Clean();
 };
+/*
+class BTreeFile :protected GenericDBFile {
+	BTreeFile(char* f_path, void* startup = NULL);
+	int Close();
+	void Load(Schema &myschema, char *loadpath);
+	void MoveFirst();
+	void Add(Record &addme);
+	int GetNext(Record &fetchme);
+	int GetNext(Record &fetchme, CNF &cnf, Record &literal);
+	void Clean();
+};
+ */
+
+class DBFile {
+private:
+	GenericDBFile* myDBFile;
+	char *path;
+	char *metapath;
+	void *startup;
+	File data;
+
+public:
+	DBFile();
+	~DBFile();
+	int Create(char *fpath, fType file_type, void *startup);
+	int Open(char *fpath);
+	int Close() {
+		myDBFile->Close();
+	};
+	void Load(Schema &myschema, char *loadpath) {
+		myDBFile->Load(myschema, loadpath);
+	};
+	void MoveFirst() {
+		myDBFile->MoveFirst();
+	};
+	void Add(Record &addme) {
+		myDBFile->Add(addme);
+	};
+	int GetNext(Record &fetchme) {
+		return myDBFile->GetNext(fetchme);
+	};
+	int GetNext(Record &fetchme, CNF &cnf, Record &literal) {
+		return myDBFile->GetNext(fetchme, cnf, literal);
+	};
+	void Clean() {
+		myDBFile->Clean();
+	};
+};
+
 #endif
