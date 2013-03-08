@@ -10,47 +10,62 @@ else
    endif
 endif
 
-test2.out: Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o BigQ.o Pipe.o y.tab.o lex.yy.o test2.o
-	$(CC) -o test.out Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o BigQ.o Pipe.o y.tab.o lex.yy.o test2.o -lfl -lpthread
+test3.out: Record.o Comparison.o ComparisonEngine.o Schema.o File.o GenericDBFile.o DBFile.o HeapFile.o SortedFile.o BigQ.o Pipe.o y.tab.o lex.yy.o test3.o
+	$(CC) -o test.out Record.o Comparison.o ComparisonEngine.o Schema.o File.o GenericDBFile.o DBFile.o HeapFile.o SortedFile.o BigQ.o Pipe.o y.tab.o lex.yy.o test3.o -lfl -lpthread
+
+test2.out: Record.o Comparison.o ComparisonEngine.o Schema.o File.o GenericDBFile.o DBFile.o HeapFile.o SortedFile.o BigQ.o Pipe.o y.tab.o lex.yy.o test2.o
+	$(CC) -o test.out Record.o Comparison.o ComparisonEngine.o Schema.o File.o GenericDBFile.o DBFile.o HeapFile.o SortedFile.o BigQ.o Pipe.o y.tab.o lex.yy.o test2.o -lfl -lpthread
 	
-test1.out: Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o y.tab.o lex.yy.o test1.o
-	$(CC) -o test.out Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o y.tab.o lex.yy.o test1.o -lfl -lpthread
+test1.out: Record.o Comparison.o ComparisonEngine.o Schema.o File.o GenericDBFile.o DBFile.o HeapFile.o SortedFile.o y.tab.o lex.yy.o test1.o
+	$(CC) -o test.out Record.o Comparison.o ComparisonEngine.o Schema.o File.o GenericDBFile.o DBFile.o HeapFile.o SortedFile.o y.tab.o lex.yy.o test1.o -lfl -lpthread
 	
 main: Record.o Comparison.o ComparisonEngine.o Schema.o File.o y.tab.o lex.yy.o main.o
 	$(CC) -o main Record.o Comparison.o ComparisonEngine.o Schema.o File.o y.tab.o lex.yy.o main.o -lfl -lpthread
 	
 test1.o: test1.cc
-	$(CC) -g -c test1.cc
+	$(CC) -c test1.cc
 	
 test2.o: test2.cc
-	$(CC) -g -c test2.cc
+	$(CC) -c test2.cc
+
+test3.o: test3.cc
+	$(CC) -c test3.cc
 	
 main.o: main.cc
-	$(CC) -g -c main.cc
+	$(CC) -c main.cc
 	
 Pipe.o: Pipe.cc
-	$(CC) -g -c Pipe.cc
+	$(CC) -c Pipe.cc
 
 BigQ.o: BigQ.cc
-	$(CC) -g -c BigQ.cc
+	$(CC) -c BigQ.cc
 
 Comparison.o: Comparison.cc
-	$(CC) -g -c Comparison.cc
+	$(CC) -c Comparison.cc
 	
 ComparisonEngine.o: ComparisonEngine.cc
-	$(CC) -g -c ComparisonEngine.cc
+	$(CC) -c ComparisonEngine.cc
+	
+HeapFile.o: HeapFile.cc
+	$(CC) -c HeapFile.cc
+
+SortedFile.o: SortedFile.cc
+	$(CC) -c SortedFile.cc
+	
+GenericDBFile.o: GenericDBFile.cc
+	$(CC) -c GenericDBFile.cc
 	
 DBFile.o: DBFile.cc
-	$(CC) -g -c DBFile.cc
+	$(CC) -c DBFile.cc
 
 File.o: File.cc
-	$(CC) -g -c File.cc
+	$(CC) -c File.cc
 
 Record.o: Record.cc
-	$(CC) -g -c Record.cc
+	$(CC) -c Record.cc
 
 Schema.o: Schema.cc
-	$(CC) -g -c Schema.cc
+	$(CC) -c Schema.cc
 	
 y.tab.o: Parser.y
 	yacc -d Parser.y -o y.tab.c

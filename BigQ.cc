@@ -7,6 +7,7 @@
 
 #include <cstdlib>
 #include <iostream>
+#include <pthread.h>
 
 #include "BigQ.h"
 #include "File.h"

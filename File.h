@@ -45,6 +45,10 @@ public:
 
     // get the # of records storing in this page
     int GetLength();
+    
+    // just try to peek the first one
+    int PeekFirst(Record *firstOne);
+    int PeekLast(Record *lastOne);
 };
 
 class File {

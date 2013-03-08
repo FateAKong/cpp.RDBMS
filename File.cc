@@ -8,9 +8,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-//#include <iterator>
-
-Page::Page() {
+Page::Page()
+{
     curSizeInBytes = sizeof (int);
     //	numRecs = 0;
     //	myRecs = new (std::nothrow) TwoWayList<Record>;
@@ -20,13 +19,15 @@ Page::Page() {
     //	}
 }
 
-int Page::GetLength() {
+int Page::GetLength()
+{
     return myRecs.size();
 }
 
 //
 
-void Page::Reuse() {
+void Page::Reuse()
+{
 
     //	// get rid of all of the records
     //	while (1) {
@@ -47,7 +48,28 @@ void Page::Reuse() {
     //	numRecs = 0;
 }
 
-int Page::GetFirst(Record *firstOne) {
+int Page::PeekFirst(Record *firstOne)
+{
+    if (myRecs.empty()) {
+        return 0;
+    }
+    firstOne->bits = myRecs.front().GetBits();
+    // TODO there is a possible memory leak! may cause duplicate free
+    //      if firstOne if freed then front().bits is delete[]ed but not set to NULL!!!
+    return 1;
+}
+
+int Page::PeekLast(Record *lastOne)
+{
+    if (myRecs.empty()) {
+        return 0;
+    }
+    lastOne->bits = myRecs.back().GetBits();
+    return 1;
+}
+
+int Page::GetFirst(Record *firstOne)
+{
 
     //	// move to the first record
     //	myRecs->MoveToStart();
@@ -58,7 +80,7 @@ int Page::GetFirst(Record *firstOne) {
     //	}
 
     if (myRecs.empty()) {
-	return 0;
+        return 0;
     }
 
     //	// and remove it
@@ -76,12 +98,13 @@ int Page::GetFirst(Record *firstOne) {
     return 1;
 }
 
-int Page::Append(Record *addMe) {
+int Page::Append(Record *addMe)
+{
     char *b = addMe->GetBits();
 
     // first see if we can fit the record
     if (curSizeInBytes + ((int *) b)[0] > PAGE_SIZE) {
-	return 0;
+        return 0;
     }
 
     //	// move to the last record
@@ -98,7 +121,8 @@ int Page::Append(Record *addMe) {
     return 1;
 }
 
-void Page::ToBinary(char *bits) {
+void Page::ToBinary(char *bits)
+{
 
     // first write the number of records on the page
     //	((int *) bits)[0] = numRecs;
@@ -121,23 +145,24 @@ void Page::ToBinary(char *bits) {
     //	}
 
     for (list<Record>::iterator it = myRecs.begin(); it != myRecs.end(); ++it) {
-	char *b = (*it).GetBits();
-	memcpy(curPos, b, ((int *) b)[0]);
-	curPos += ((int *) b)[0];
+        char *b = (*it).GetBits();
+        memcpy(curPos, b, ((int *) b)[0]);
+        curPos += ((int *) b)[0];
     }
 
 }
 
-void Page::FromBinary(char *bits) {
+void Page::FromBinary(char *bits)
+{
 
     // first read the number of records on the page
     int numRecs = ((int *) bits)[0];
 
     // sanity check
     if (numRecs > 1000000 || numRecs < 0) {
-	cerr << "This is probably an error.  Found " << numRecs
-		<< " records on a page.\n";
-	exit(1);
+        cerr << "This is probably an error.  Found " << numRecs
+                << " records on a page.\n";
+        exit(1);
     }
 
     // and now get the binary representations of each
@@ -155,54 +180,57 @@ void Page::FromBinary(char *bits) {
     // now loop through and re-populate it
     Record *temp = new (std::nothrow) Record();
     if (temp == NULL) {
-	cout << "ERROR : Not enough memory. EXIT !!!\n";
-	exit(1);
+        cout << "ERROR : Not enough memory. EXIT !!!\n";
+        exit(1);
     }
 
     curSizeInBytes = sizeof (int);
     for (int i = 0; i < numRecs; i++) {
 
-	// get the length of the current record
-	int len = ((int *) curPos)[0];
-	curSizeInBytes += len;
+        // get the length of the current record
+        int len = ((int *) curPos)[0];
+        curSizeInBytes += len;
 
-	// create the record
-	temp->CopyBits(curPos, len);
+        // create the record
+        temp->CopyBits(curPos, len);
 
-	//		// add it
-	//		myRecs->Insert(temp);
+        //		// add it
+        //		myRecs->Insert(temp);
 
-	// TODO ? anything?
-	myRecs.insert(myRecs.end(), *temp);
-	temp->Reuse();
+        // TODO ? anything?
+        myRecs.insert(myRecs.end(), *temp);
+        temp->Reuse();
 
-	//		// and move along
-	//		myRecs->Advance();
-	curPos += len;
+        //		// and move along
+        //		myRecs->Advance();
+        curPos += len;
     }
 
     delete temp;
 }
 
-File::File() {
+File::File()
+{
 }
 
-File::~File() {
+File::~File()
+{
 }
 
-void File::GetPage(Page *putItHere, off_t whichPage) {
+void File::GetPage(Page *putItHere, off_t whichPage)
+{
 
     if (whichPage >= curLength) {
-	cerr << "whichPage " << whichPage << " length " << curLength << endl;
-	cerr << "BAD: you tried to read past the end of the file\n";
-	exit(1);
+        cerr << "whichPage " << whichPage << " length " << curLength << endl;
+        cerr << "BAD: you tried to read past the end of the file\n";
+        exit(1);
     }
 
     // read in the specified page
     char *bits = new (std::nothrow) char[PAGE_SIZE];
     if (bits == NULL) {
-	cout << "ERROR : Not enough memory. EXIT !!!\n";
-	exit(1);
+        cout << "ERROR : Not enough memory. EXIT !!!\n";
+        exit(1);
 
     }
     lseek(myFilDes, PAGE_SIZE * (whichPage + 1), SEEK_SET);
@@ -212,17 +240,18 @@ void File::GetPage(Page *putItHere, off_t whichPage) {
 
 }
 
-bool File::RemovePageHead(Record *putItHere, off_t whichPage) {
+bool File::RemovePageHead(Record *putItHere, off_t whichPage)
+{
     if (whichPage >= curLength) {
-	cerr << "whichPage " << whichPage << " length " << curLength << endl;
-	cerr << "BAD: you tried to read past the end of the file\n";
-	exit(1);
+        cerr << "whichPage " << whichPage << " length " << curLength << endl;
+        cerr << "BAD: you tried to read past the end of the file\n";
+        exit(1);
     }
     lseek(myFilDes, PAGE_SIZE * (whichPage + 1), SEEK_SET);
     int numRecs;
     read(myFilDes, &numRecs, sizeof (int));
     if (numRecs-- == 0) {
-	return false;
+        return false;
     }
 
     int recLen;
@@ -241,27 +270,28 @@ bool File::RemovePageHead(Record *putItHere, off_t whichPage) {
 
 // TODO necessary to destruct each rec in the pageBuffer?
 
-void File::AddPage(Page *addMe, off_t whichPage) {
+void File::AddPage(Page *addMe, off_t whichPage)
+{
     // because the first page has no actual record data but page count info
     // thus we make whichPage and curLength transparent to the user
     // so that we need to increment index by 1 when calculating write position
 
     // if we are trying to add past the end of file, then zero all the skipping pages
     if (whichPage >= curLength) {
-	int foo = 0;
-	for (off_t i = curLength; i < whichPage; i++) {
-	    lseek(myFilDes, PAGE_SIZE * (i + 1), SEEK_SET);
-	    write(myFilDes, &foo, sizeof (int));
-	}
-	// set the size
-	curLength = whichPage + 1;
+        int foo = 0;
+        for (off_t i = curLength; i < whichPage; i++) {
+            lseek(myFilDes, PAGE_SIZE * (i + 1), SEEK_SET);
+            write(myFilDes, &foo, sizeof (int));
+        }
+        // set the size
+        curLength = whichPage + 1;
     }
 
     // now write the page
     char *bits = new (std::nothrow) char[PAGE_SIZE];
     if (bits == NULL) {
-	cout << "ERROR : Not enough memory. EXIT !!!\n";
-	exit(1);
+        cout << "ERROR : Not enough memory. EXIT !!!\n";
+        exit(1);
     }
 
     addMe->ToBinary(bits);
@@ -307,14 +337,15 @@ void File::AddPage(Page *addMe, off_t whichPage) {
 
 }
 
-void File::Open(int fileLen, char *fName) {
+void File::Open(int fileLen, char *fName)
+{
 
     // figure out the flags for the system open call
     int mode;
     if (fileLen == 0)
-	mode = O_TRUNC | O_RDWR | O_CREAT;
+        mode = O_TRUNC | O_RDWR | O_CREAT;
     else
-	mode = O_RDWR;
+        mode = O_RDWR;
 
     // actually do the open
     myFilDes = open(fName, mode, S_IRUSR | S_IWUSR);
@@ -325,28 +356,30 @@ void File::Open(int fileLen, char *fName) {
 
     // see if there was an error
     if (myFilDes < 0) {
-	cerr << "BAD!  Open did not work for " << fName << "\n";
-	exit(1);
+        cerr << "BAD!  Open did not work for " << fName << "\n";
+        exit(1);
     }
 
     // read in the buffer if needed
     if (fileLen != 0) {
 
-	// read in the first few bits, which is the page size
-	lseek(myFilDes, 0, SEEK_SET);
-	read(myFilDes, &curLength, sizeof (off_t));
+        // read in the first few bits, which is the page size
+        lseek(myFilDes, 0, SEEK_SET);
+        read(myFilDes, &curLength, sizeof (off_t));
 
     } else {
-	curLength = 0;
+        curLength = 0;
     }
 
 }
 
-off_t File::GetLength() {
+off_t File::GetLength()
+{
     return curLength;
 }
 
-int File::Close() {
+int File::Close()
+{
 
     // write out the current length in pages
     lseek(myFilDes, 0, SEEK_SET);
