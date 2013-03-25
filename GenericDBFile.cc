@@ -104,3 +104,13 @@ int GenericDBFile::Close()
     //	fclose(meta);
     //	delete this;
 }
+
+void GenericDBFile::Load(Schema &myschema, char *loadpath)
+{
+    Record addMe;
+    FILE *bulk = fopen(loadpath, "r");
+    while (addMe.SuckNextRecord(&myschema, bulk) == 1) {    
+        Add(addMe);
+    }
+    fclose(bulk);
+}

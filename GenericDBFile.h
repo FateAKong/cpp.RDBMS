@@ -46,6 +46,7 @@ public:
     GenericDBFile(const GenericDBFile& orig);
     void MoveFirst();
     int GetNext(Record &fetchme);
+    void Load(Schema &myschema, char *loadpath);
     int Close();
     virtual int Create(char *_path, void *_meta);
     virtual int Open(char *_path);

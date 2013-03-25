@@ -50,7 +50,7 @@ int SortedFile::Create(char *_path, void *_meta)
     strcpy(metaPath, _path);
     strcat(metaPath, ".meta");
     FILE *metaFile = fopen(metaPath, "ab");
-//    fseek(metaFile, sizeof (int), SEEK_SET);
+    //    fseek(metaFile, sizeof (int), SEEK_SET);
     fwrite(&(runLen), sizeof (int), 1, metaFile);
     fwrite(&(sortOrder.numAtts), sizeof (int), 1, metaFile);
     fwrite(sortOrder.whichAtts, sizeof (int), sortOrder.numAtts, metaFile);
@@ -109,11 +109,6 @@ void SortedFile::Add(Record &addme)
     }
     inPipe->Insert(&addme);
     dirty = true;
-}
-
-void SortedFile::Load(Schema &myschema, char *loadpath)
-{
-
 }
 
 int SortedFile::MergeDiff(File &data, Record *addMe)
@@ -227,7 +222,7 @@ int SortedFile::GetStartPageIndex(int start, int end, OrderMaker &queryOrder, Or
     int retFront = compEng.Compare(&temp, &queryOrder, &literal, &queryLitOrder);
     buffer.PeekLast(&temp);
     int retBack = compEng.Compare(&temp, &queryOrder, &literal, &queryLitOrder);
-    temp.Reuse();       // TODO why we need to reuse it? in your destructor you have set bits to NULL! why cant it work?!
+    temp.Reuse(); // TODO why we need to reuse it? in your destructor you have set bits to NULL! why cant it work?!
     if (retFront == 1) { // retBack must be 1 since records are sorted
         return GetStartPageIndex(start, mid - 1, queryOrder, queryLitOrder, literal);
     } else if (retBack == -1) { // retFront must be -1 since records are sorted
@@ -327,6 +322,7 @@ int SortedFile::GetNext(Record &fetchme, CNF &cnf, Record &literal)
         // only applicable when we just switch from regular getNext()
         if (fetchedRead) { // now fetchedRead==true while initedQuery==false
             // TODO figure out the combination and transformation of fetchedRead and initedQuery
+            // TODO NOT TESTED!
             if (queryOrder.numAtts != 0) {
                 buffer.PeekFirst(temp);
                 int retBuf = compEng.Compare(temp, &queryOrder, &literal, &queryLitOrder);

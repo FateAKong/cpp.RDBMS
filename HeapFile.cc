@@ -24,17 +24,6 @@ HeapFile::~HeapFile()
 {
 }
 
-void HeapFile::Load(Schema &f_schema, char *loadpath)
-{
-    // TODO check if it is reading?
-    Record addMe;
-    FILE *bulk = fopen(loadpath, "r");
-    while (addMe.SuckNextRecord(&f_schema, bulk) == 1) {
-        Add(addMe);
-    }
-    fclose(bulk);
-}
-
 // clean the nasty stufff! write dirty data in the buffer to disk
 
 void HeapFile::Clean()
@@ -71,15 +60,6 @@ void HeapFile::Add(Record &rec)
         buffer.Append(&rec);
     }
     dirty = true;
-
-    // LAST VERSION
-    //	if (buffer.Append(&rec) == 0 && dirty == true) {
-    //		data.AddPage(&buffer, data.GetLength() - 1);
-    //		buffer.EmptyItOut();
-    //		dirty = false;
-    //		buffer.Append(&rec);// ignore the extreme circumstance when record size > page size
-    //	}
-    //	dirty = true;
 }
 
 int HeapFile::GetNext(Record &fetchme, CNF &cnf, Record &literal)
