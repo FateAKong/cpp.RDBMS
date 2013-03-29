@@ -257,8 +257,8 @@ bool File::RemovePageHead(Record *putItHere, off_t whichPage)
     int recLen;
     read(myFilDes, &recLen, sizeof (int));
     lseek(myFilDes, PAGE_SIZE * (whichPage + 1) + sizeof (int), SEEK_SET);
-    putItHere->bits = new char[recLen];
-    read(myFilDes, putItHere->bits, recLen);
+    putItHere->SetBits(new char[recLen]);
+    read(myFilDes, putItHere->GetBits(), recLen);
     int remLen = PAGE_SIZE - sizeof (int) -recLen;
     char *remBits = new char[remLen];
     read(myFilDes, remBits, remLen);

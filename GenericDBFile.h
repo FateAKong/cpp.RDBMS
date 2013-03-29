@@ -46,13 +46,13 @@ public:
     GenericDBFile(const GenericDBFile& orig);
     void MoveFirst();
     int GetNext(Record &fetchme);
-    void Load(Schema &myschema, char *loadpath);
+//    void Load(Schema &myschema, char *loadpath);
     int Close();
     virtual int Create(char *_path, void *_meta);
     virtual int Open(char *_path);
+    virtual void Load(Schema &myschema, char *loadpath);
     virtual int GetNext(Record &fetchme, CNF &cnf, Record &literal) = 0;
     virtual void Add(Record &addme) = 0;
-    virtual void Load(Schema &myschema, char *loadpath) = 0;
     virtual void Clean() = 0;
     virtual ~GenericDBFile();
 };

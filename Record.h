@@ -24,59 +24,66 @@ using namespace std;
 //	4) Bits encoding the record's data
 
 class Record {
-
-friend class ComparisonEngine;
-friend class Page;
+    friend class ComparisonEngine;
+    friend class Page;
 
 private:
-	char* GetBits ();
-	void SetBits (char *bits);
-	void CopyBits(char *bits, int b_len);
+    char *bits;
 
 public:
-	Record ();
-	~Record();
+    Record();
+    ~Record();
 
-	char *bits;
-	// TODO
-	
-//	// TODO you have no way to implement them unless you know the OrderMaker
-//	bool operator<(const Record &) const;
-//	bool operator>(const Record &) const;
-//	bool operator==(const Record &) const;
+    char* GetBits();
+    void SetBits(char *bits);
+    void CopyBits(char *bits, int b_len);
+    // TODO
 
-	int GetLength();
+    //	// TODO you have no way to implement them unless you know the OrderMaker
+    //	bool operator<(const Record &) const;
+    //	bool operator>(const Record &) const;
+    //	bool operator==(const Record &) const;
 
-	void Reuse();
+    int GetLength();
 
-	// suck the contents of the record fromMe into this; note that after
-	// this call, fromMe will no longer have anything inside of it
-	void Consume (Record *fromMe);
+    void Reuse();
 
-	// make a copy of the record copyMe; note that this is far more 
-	// expensive (requiring a bit-by-bit copy) than Consume, which is
-	// only a pointer operation
-	void Copy (Record *copyMe);
+    // suck the contents of the record fromMe into this; note that after
+    // this call, fromMe will no longer have anything inside of it
+    void Consume(Record *fromMe);
 
-	// reads the next record from a pointer to a text file; also requires
-	// that the schema be given; returns a 0 if there is no data left or
-	// if there is an error and returns a 1 otherwise
-	int SuckNextRecord (Schema *mySchema, FILE *textFile);
+    // make a copy of the record copyMe; note that this is far more 
+    // expensive (requiring a bit-by-bit copy) than Consume, which is
+    // only a pointer operation
+    void Copy(Record *copyMe);
 
-	// this projects away various attributes... 
-	// the array attsToKeep should be sorted, and lists all of the attributes
-	// that should still be in the record after Project is called.  numAttsNow
-	// tells how many attributes are currently in the record
-	void Project (int *attsToKeep, int numAttsToKeep, int numAttsNow);
+    // reads the next record from a pointer to a text file; also requires
+    // that the schema be given; returns a 0 if there is no data left or
+    // if there is an error and returns a 1 otherwise
+    int SuckNextRecord(Schema *mySchema, FILE *textFile);
 
-	// takes two input records and creates a new record by concatenating them;
-	// this is useful for a join operation
-	void MergeRecords (Record *left, Record *right, int numAttsLeft, 
-		int numAttsRight, int *attsToKeep, int numAttsToKeep, int startOfRight);
+    // this projects away various attributes... 
+    // the array attsToKeep should be sorted, and lists all of the attributes
+    // that should still be in the record after Project is called
+    // numAttsNow tells how many attributes are currently in the record
+    void Project(int *attsToKeep, int numAttsToKeep, int numAttsNow);
 
-	// prints the contents of the record; this requires
-	// that the schema also be given so that the record can be interpreted
-	string Print (Schema *mySchema);
+    // takes two input records and creates a new record by concatenating them;
+    // this is useful for a join operation
+    void MergeRecords(Record *left, Record *right, int numAttsLeft,
+            int numAttsRight, int *attsToKeep, int numAttsToKeep, int startOfRight);
+
+    // prints the contents of the record; this requires
+    // that the schema also be given so that the record can be interpreted
+    void Print(Schema *mySchema);
+
+    int getNumAttrs();
+
+    // writes the record to a pointer to a text file
+    // return 0 if there is an error and returns 1 otherwise
+    int SpitNextRecord(Schema *mySchema, FILE *textFile);
+    
+    string ToString(Schema *mySchema);
 };
 
 #endif

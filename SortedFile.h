@@ -39,8 +39,8 @@ public:
     virtual int Open(char *_path);
     virtual int GetNext(Record &fetchme, CNF &cnf, Record &literal);
     virtual void Add(Record &addme);
-    virtual void Load(Schema &myschema, char *loadpath);
-    virtual int Close();
+//    virtual void Load(Schema &myschema, char *loadpath);
+//    virtual int Close();
     virtual void Clean();
     virtual ~SortedFile();
 };

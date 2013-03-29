@@ -22,7 +22,7 @@ public:
 //    virtual int Open(char *filePath);
     virtual int GetNext(Record &fetchme, CNF &cnf, Record &literal);
     virtual void Add(Record &addme);
-    virtual void Load(Schema &myschema, char *loadpath);
+//    virtual void Load(Schema &myschema, char *loadpath);
     virtual void Clean();
     virtual ~HeapFile();
 };

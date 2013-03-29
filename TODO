@@ -3,3 +3,8 @@ TODO
 2. when close the file clean all the record* stored in the list
 
 1. test the destructor of Record
+
+1. in File.cc :  GetFirst(Record*)  change to use Consume() and check all the calls to this GetFirst()
+   also can we eliminate Record.Reuse() since if we use Consume() everywhere like in Pipe.Insert() then no need to set bits to null manually like in SelectFile.workFunc()
+2. in SortedDBFile: rename tempfile and remove oldfile
+3. unify the way we use the parameters   pointer or reference    and for the temp var we use outside  pointer or object

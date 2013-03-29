@@ -69,6 +69,7 @@ int HeapFile::GetNext(Record &fetchme, CNF &cnf, Record &literal)
         if (!GetNext(fetchme)) {
             return 0;
         }
-    } while (engine.Compare(&fetchme, &literal, &cnf) == 0);
+    } while (engine.Compare(&fetchme, &fetchme, &literal, &cnf) == 0);
+    // TODO check if anything goes wrong with this self comparison and if not apply it to sorted file
     return 1;
 }
