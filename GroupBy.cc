@@ -11,15 +11,15 @@
 
 using namespace std;
 
-Attribute _IA = {"int", Int};
-Attribute _SA = {"string", String};
-Attribute _DA = {"double", Double};
-Schema s_sch("catalog", "supplier");
-Schema ps_sch("catalog", "partsupp");
-Attribute s_nationkey = {"s_nationkey", Int};
-Attribute ps_supplycost = {"ps_supplycost", Double};
-Attribute joinatt[] = {_IA, _SA, _SA, s_nationkey, _SA, _DA, _SA, _IA, _IA, _IA, ps_supplycost, _SA};
-Schema join_sch("join_sch", 12, joinatt);
+//Attribute _IA = {"int", Int};
+//Attribute _SA = {"string", String};
+//Attribute _DA = {"double", Double};
+//Schema s_sch("catalog", "supplier");
+//Schema ps_sch("catalog", "partsupp");
+//Attribute s_nationkey = {"s_nationkey", Int};
+//Attribute ps_supplycost = {"ps_supplycost", Double};
+//Attribute joinatt[] = {_IA, _SA, _SA, s_nationkey, _SA, _DA, _SA, _IA, _IA, _IA, ps_supplycost, _SA};
+//Schema join_sch("join_sch", 12, joinatt);
 
 GroupBy::GroupBy()
 {

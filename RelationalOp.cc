@@ -13,6 +13,7 @@
 
 RelationalOp::RelationalOp()
 {
+    nPage = 100;
 }
 
 RelationalOp::RelationalOp(const RelationalOp& orig)
@@ -48,5 +49,7 @@ void *RelationalOp::workerHelper(void *context)
 
 void RelationalOp::Use_n_Pages(int n)
 {
-    nPage = n;
+    if (n > nPage) {
+        nPage = n;
+    }
 }

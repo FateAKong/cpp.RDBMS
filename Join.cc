@@ -44,7 +44,7 @@ void *Join::workerFunc()
     if (nAttrEqual > 0) { // equal join
         Pipe sortedPipeL(100), sortedPipeR(100);
         // TODO run length of BigQ should also be related to use_n_page()
-        BigQ bigQL(*inPipeL, sortedPipeL, orderL, 3), bigQR(*inPipeR, sortedPipeR, orderR, 3);
+        BigQ bigQL(*inPipeL, sortedPipeL, orderL, nPage), bigQR(*inPipeR, sortedPipeR, orderR, nPage);
         Record curRecL, curRecR;
         if (!sortedPipeL.Remove(&curRecL) || !sortedPipeR.Remove(&curRecR)) {
             cerr << "No records from input pipe!" << endl;

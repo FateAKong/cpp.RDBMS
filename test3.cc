@@ -320,7 +320,7 @@ void q6()
     grp_order.numAtts = 1;
     grp_order.whichAtts[0] = 3;
     grp_order.whichTypes[0] = Int;
-    G.Use_n_Pages(1);
+    G.Use_n_Pages(buffsz);
 
     SF_ps.Run(dbf_ps, _ps, cnf_ps, lit_ps); // 161 recs qualified
     J.Run(_s, _ps, _s_ps, cnf_p_ps, lit_p_ps);
