@@ -1,4 +1,5 @@
-CC = g++ -g -Wno-deprecated 
+CC = g++ -g -Wno-deprecated -std=c++0x
+#   CC = g++ -O2
 
 ifdef SystemRoot
    RM = del /Q
@@ -9,6 +10,9 @@ else
       tag = -n
    endif
 endif
+
+test41.out: Record.o Comparison.o ComparisonEngine.o Schema.o File.o GenericDBFile.o DBFile.o HeapFile.o SortedFile.o BigQ.o Pipe.o Statistics.o y.tab.o lex.yy.o test41.o
+	$(CC) -o test.out Record.o Comparison.o ComparisonEngine.o Schema.o File.o GenericDBFile.o DBFile.o HeapFile.o SortedFile.o BigQ.o Pipe.o Statistics.o y.tab.o lex.yy.o test41.o -lfl -lpthread
 
 test3.out: Record.o Comparison.o ComparisonEngine.o Schema.o File.o GenericDBFile.o DBFile.o HeapFile.o SortedFile.o BigQ.o Pipe.o RelationalOp.o SelectPipe.o SelectFile.o Project.o Join.o DuplicateRemoval.o Sum.o GroupBy.o WriteOut.o Function.o y.tab.o lex.yy.o yyfunc.tab.o lex.yyfunc.o test3.o
 	$(CC) -o test.out Record.o Comparison.o ComparisonEngine.o Schema.o File.o GenericDBFile.o DBFile.o HeapFile.o SortedFile.o BigQ.o Pipe.o RelationalOp.o SelectPipe.o SelectFile.o Project.o Join.o DuplicateRemoval.o Sum.o GroupBy.o WriteOut.o Function.o y.tab.o lex.yy.o yyfunc.tab.o lex.yyfunc.o test3.o -lfl -lpthread
@@ -36,9 +40,15 @@ test22.o: test22.cc
 	
 test3.o: test3.cc
 	$(CC) -c test3.cc
+
+test41.o: test41.cc
+	$(CC) -c test41.cc
 	
 main.o: main.cc
 	$(CC) -c main.cc
+
+Statistics.o: Statistics.cc
+	$(CC) -c Statistics.cc
 	
 RelationalOp.o: RelationalOp.cc
 	$(CC) -c RelationalOp.cc
@@ -105,7 +115,7 @@ Schema.o: Schema.cc
 	
 y.tab.o: Parser.y
 	yacc -d Parser.y
-	#sed $(tag) y.tab.c -e "s/  __attribute__ ((__unused__))$$/# ifndef __cplusplus\n  __attribute__ ((__unused__));\n# endif/" 
+	sed $(tag) y.tab.c -e "s/  __attribute__ ((__unused__))$$/# ifndef __cplusplus\n  __attribute__ ((__unused__));\n# endif/" 
 	g++ -c y.tab.c
 		
 yyfunc.tab.o: ParserFunc.y
@@ -130,6 +140,7 @@ clean:
 cleanAll: clean
 	$(RM) *.sr
 	$(RM) *.bin*
+	$(RM) *.tmp
 	
 
 all: Record.o Comparison.o ComparisonEngine.o Schema.o File.o y.tab.o lex.yy.o main.o

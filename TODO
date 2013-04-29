@@ -1,10 +1,30 @@
-TODO
-1. two modes: one for consecutive indexes, the other is default
-2. when close the file clean all the record* stored in the list
+TO IMPLEMENT
 
-1. test the destructor of Record
+P3
+ - project & groupBy have output columns adjusting yet (needed or not?)
+ - 
 
-1. in File.cc :  GetFirst(Record*)  change to use Consume() and check all the calls to this GetFirst()
-   also can we eliminate Record.Reuse() since if we use Consume() everywhere like in Pipe.Insert() then no need to set bits to null manually like in SelectFile.workFunc()
-2. in SortedDBFile: rename tempfile and remove oldfile
-3. unify the way we use the parameters   pointer or reference    and for the temp var we use outside  pointer or object
+
+P2
+ - improve binding between BigQ runLength and Use_N_Page()
+ - update comparing functions invoked by GetNext(cnf) in sorted version
+ - inheritance structure of DBFile
+ - double buffering and other optimization for external sorting 
+   profiling and comparison among different external sort methods
+ - rename tempfile and remove oldfile
+ 
+P1
+ - use Consume() model (as much as possible) and if not applicable use Reuse()
+   check all the calls to this GetFirst() to make sure the model is unified
+   as well adjust the way of destructor
+ - unify the way of parameters (pointer or reference?)
+   also unify the way of temp var outside  (pointer or object?)
+ - two modes: one for consecutive indexes, the other is default?
+
+TO TEST
+
+P2
+ - load() inherited generic class
+ - add() branch of merging
+ - getNext(cnf) needs more paths cover
+ - when close the file clean all the record* stored in the list

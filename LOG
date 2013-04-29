@@ -1,0 +1,58 @@
+commit 41a31463408d4b5a610a91cabd18572ddb9df557
+Author: Paddy Haotian Sun <azurelfsun@gmail.com>
+Date:   Fri Mar 29 23:01:29 2013 -0400
+
+    Minor changes from last version of Project 3
+    bind BigQ runLength with Use_N_Page()
+
+commit c89f6dbcd3e4093485eeb5b868422a20ff6a558e
+Author: fateakong <fateakong@Fate.AKong-Ubuntu>
+Date:   Fri Mar 29 12:25:06 2013 -0400
+
+    Project 3 Relational Operators Major Parts Finished
+    block nested loop not implemented
+    project groupBy no filter of output attributes yet
+    sorted db file GetNext(cnf) update needed
+
+commit 62e6f81c4d308099daef750594f968117f4b5ae1
+Author: fateakong <fateakong@Fate.AKong-Ubuntu>
+Date:   Mon Mar 25 16:28:52 2013 -0400
+
+    minor change from last version of finished milestone2
+    load function moved to generic class and not tested for sorted version
+
+commit c8992cfa23f3ab9d48bc908d1d65ccf7e08489d4
+Author: fateakong <fateakong@Fate.AKong-Ubuntu>
+Date:   Fri Mar 8 17:25:08 2013 -0500
+
+    milestone 2 finished
+    merge part when adding elements not tested
+    getNext(cnf) part basically finished test
+
+commit d4a455c474bb0ed64c29757d80229842a699cd70
+Author: fateakong <fateakong@Fate.AKong-Ubuntu>
+Date:   Mon Mar 4 15:09:48 2013 -0500
+
+    improved inheritance structure to meet the need of path storage in sorted file (otherwise we can't re-sort the db file without the path)
+
+commit db1bf2e9e2a1fad12c61f4d3402cf07306417ba2
+Author: fateakong <fateakong@Fate.AKong-Ubuntu>
+Date:   Mon Mar 4 02:37:23 2013 -0500
+
+    generic DBFile completed and tested well for a1 and a2-1
+
+commit c45db0a210fd37f723792db09005e617cc05fb25
+Author: fateakong <fateakong@Fate.AKong-Ubuntu>
+Date:   Sun Mar 3 18:44:58 2013 -0500
+
+    sorted file finished basically, extra improvements needed, profiling and comparison among different external sort methods would be great
+
+commit a50ffc49197127c4e27de3901bb395d93a9587b8
+Author: Paddy Haotian Sun <azurelfsun@gmail.com>
+Date:   Sun Mar 3 03:34:41 2013 -0500
+
+commit 1c846d6058b5f92a8fa1fdac289ddd8a139540be
+Author: Paddy Haotian Sun <azurelfsun@gmail.com>
+Date:   Sat Mar 2 01:58:06 2013 -0500
+
+    unsuccesssful sorted file implementation

@@ -168,9 +168,10 @@ pip-log.txt
 ## Project
 #############
 
-/*.o
-/*.bin*
-/*.out
-/*.tab.*
-/lex.yy*.c
-/*.sr
+/nbproject/
+*.o
+*.bin*
+*.out
+*.tab.*
+lex.yy*.c
+*.sr
