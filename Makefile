@@ -1,4 +1,4 @@
-CC = g++ -g -Wno-deprecated -std=c++0x
+CC = g++ -g -Wno-deprecated
 #   CC = g++ -O2
 
 ifdef SystemRoot

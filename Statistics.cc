@@ -9,7 +9,6 @@
 #include "Join.h"
 
 using namespace std;
-//using std::tr1::unordered_map;
 
 Statistics::Statistics()
 {
@@ -219,7 +218,7 @@ void Statistics::Apply(struct AndList *parseTree, char *relNames[], int numToJoi
     //       note that self join with two attrs belonging to same relation should
     //       be handled by invoker of Statistics class via copying/renaming
 
-    IIHash hashSetRelCnt;
+    unordered_map<int, int> hashSetRelCnt;
     int joinSetIdx;
     for (int i = 0; i < numToJoin; i++) {
         // check existence of every relation
@@ -245,7 +244,7 @@ void Statistics::Apply(struct AndList *parseTree, char *relNames[], int numToJoi
     }
 
     // iterate over the sets shared by the relations passed in
-    IIHash::iterator it, itEnd = hashSetRelCnt.end();
+    unordered_map<int, int>::iterator it, itEnd = hashSetRelCnt.end();
     it = hashSetRelCnt.begin();
     while (it != itEnd) {
         // check if all the relations of this set are involved
@@ -275,7 +274,7 @@ void Statistics::Apply(struct AndList *parseTree, char *relNames[], int numToJoi
     while (curAndList != NULL) {
         struct OrList *curOrList = curAndList->left;
         // TODO complete the checking job for that same attr appears in multiple OR exprs
-        multimap<string, bool> hashAttrSelect; // solely handle non-independent OrList
+        unordered_multimap<string, bool> hashAttrSelect; // solely handle non-independent OrList
         string strSameAttrName, strSameRelName;
         double nSameAttrTupleOrig; // keep record of numDist of first attr in case of same attrs
         bool hasJoin = false, hasSelect = false;
@@ -381,7 +380,7 @@ void Statistics::Apply(struct AndList *parseTree, char *relNames[], int numToJoi
         if (nOrComp > 1 && nOrComp == nAttrSelect &&
                 hashAttrSelect.count(hashAttrSelect.begin()->first) == nAttrSelect) {
             double nSameAttrTuple = 0.0;
-            for (multimap < string, bool>::iterator itAttrSelect = hashAttrSelect.begin();
+            for (unordered_multimap < string, bool>::iterator itAttrSelect = hashAttrSelect.begin();
                     itAttrSelect != hashAttrSelect.end(); itAttrSelect++) {
                 if (itAttrSelect->second) {
                     nSameAttrTuple++;
@@ -409,7 +408,7 @@ void Statistics::Apply(struct AndList *parseTree, char *relNames[], int numToJoi
 
 double Statistics::Estimate(struct AndList *parseTree, char **relNames, int numToJoin)
 {
-    IIHash hashSetRelCnt;
+    unordered_map<int,int> hashSetRelCnt;
     for (int i = 0; i < numToJoin; i++) {
         // check existence of every relation
         if (hashRelSetIdx.count(relNames[i]) == 0) {
@@ -426,7 +425,7 @@ double Statistics::Estimate(struct AndList *parseTree, char **relNames, int numT
     }
 
     // iterate over the sets shared by the relations passed in
-    IIHash::iterator it = hashSetRelCnt.begin(), itEnd = hashSetRelCnt.end();
+    unordered_map<int,int>::iterator it = hashSetRelCnt.begin(), itEnd = hashSetRelCnt.end();
     double joinEst = 1.0;
     while (it != itEnd) {
         // check if all the relations of this set are involved
@@ -443,7 +442,7 @@ double Statistics::Estimate(struct AndList *parseTree, char **relNames, int numT
     double dblAndFactor = 1.0;
     while (curAndList != NULL) {
         struct OrList *curOrList = curAndList->left;
-        multimap<string, bool> hashAttrSelect; // solely handle non-independent OrList
+        unordered_multimap<string, bool> hashAttrSelect; // solely handle non-independent OrList
         int nSameAttrTupleOrig; // keep record of numDist of first attr in case of same attrs        bool hasJoin = false, hasSelect = false;
         bool hasJoin = false, hasSelect = false;
         double dblOrFactor = 1.0;
@@ -519,7 +518,7 @@ double Statistics::Estimate(struct AndList *parseTree, char **relNames, int numT
         if (nOrComp > 1 && nOrComp == nAttrSelect &&
                 hashAttrSelect.count(hashAttrSelect.begin()->first) == nAttrSelect) {
             int nSameAttrTuple = 0;
-            for (multimap < string, bool>::iterator itAttrSelect = hashAttrSelect.begin();
+            for (unordered_multimap < string, bool>::iterator itAttrSelect = hashAttrSelect.begin();
                     itAttrSelect != hashAttrSelect.end(); itAttrSelect++) {
                 if (itAttrSelect->second) {
                     nSameAttrTuple++;

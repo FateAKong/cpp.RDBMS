@@ -1,18 +1,19 @@
 #ifndef STATISTICS_H
 #define STATISTICS_H
 
-#include <unordered_map>
-#include <map>
+#include <tr1/unordered_map>
 #include <vector>
 #include "ParseTree.h"
 
 using namespace std;
+using std::tr1::unordered_map;
+using std::tr1::unordered_multimap;
 
-//typedef tr1::unordered_map<std::string, int> IntHash;
-//typedef std::tr1::unordered_map<std::string, IntHash> StrIntHash;
-typedef map<string, int> IntHash;
-typedef map<string, IntHash> StrIntHash;
-typedef map<int, int> IIHash;
+typedef unordered_map<string, int> IntHash;
+typedef unordered_map<string, IntHash> StrIntHash;
+//typedef map<string, int> IntHash;
+//typedef map<string, IntHash> StrIntHash;
+//typedef map<int, int> IIHash;
 
 class Statistics {
 public:
